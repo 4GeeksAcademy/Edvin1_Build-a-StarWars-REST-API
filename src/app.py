@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Posts
 #from models import Person
 
 app = Flask(__name__)
@@ -36,14 +36,42 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/users', methods=['GET'])
+def handle_all():
+    users = User.query.all()
+    users = [user.serialize() for user in users]
+    return jsonify(users), 200
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
+@app.route('/posts', methods=['GET'])
+def handle_get_posts():
+    posts = Posts.query.all()
+    posts = [post.serialize() for post in posts]
+    return jsonify(posts), 200
+
+
+@app.route('/user/<int:id>', methods=['GET'])
+def handle_one(id):
+    user = User.query.get(id)
+    respObj = {
+        "success" : True,
+        "data" : user.serialize()
     }
+    return jsonify(respObj), 200
 
-    return jsonify(response_body), 200
+
+@app.route('/user', methods=['POST'])
+def add_user():
+    data = request.json
+    new_user = User(
+        email = data["email"],
+        password = data["password"],
+        city = data["city"],
+        country = data["country"],
+        is_active = data["is_active"]
+        )
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(new_user.serialize()), 201
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
