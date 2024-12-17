@@ -36,6 +36,15 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+@app.route('/people', methods=['GET'])
+def get_people():
+    users = User.query.all()
+    users = [user.serialize() for user in users]
+    return jsonify(users), 200
+
+#####
+
+
 @app.route('/users', methods=['GET'])
 def handle_all():
     users = User.query.all()
