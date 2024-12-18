@@ -55,7 +55,7 @@ def get_single_person():
 
 @app.route('/planets', methods=['GET'])
 def get_all_planets():
-    planets = Planets.query.all()                                                   # poner nombre de clase o tabla???
+    planets = Planets.query.all()                                                   # en aqui hay que poner nombre de clase o tabla??? osea mayuscula o minuscula?
     serialized_planets = [planet.serialize() for planet in planets]
     return jsonify(serialized_planets), 200
 
