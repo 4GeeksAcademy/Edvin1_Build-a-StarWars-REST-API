@@ -4,85 +4,77 @@ db = SQLAlchemy()
 
 ## cuando se modifica la tabla -> pipenv run migrate -> pipenv run upgrade/downgrade
 
-user_group = db.Table('user_group',
-                      db.Column('user_id', db.Integer, db.ForeignKey('user.id', primary_key=True)),
-                      db.Column('group.id', db.Integer, db.ForeignKey('groups.id', primary_key=True))
-                      )
-
-class User(db.Model):
-    __tablename__= 'user'
+class Users(db.Model):
+    __tablename__= 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-    city = db.Column(db.String(150))
-    country = db.Column(db.String(150), nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    favourites = db.relationship('Favourites', backref='users', lazy=True)
 
-    #relation posts
-    posts = db.relationship('Posts', back_populates='user', lazy=True)
-
-    #relation muchos a muchos
-    groups = db.relationship('Groups', secondary=user_group, back_populates='users')
 
     def __repr__(self):
-        return '<User %r>' % self.email
+        return '<Users %r>' % self.email
 
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
-            "city" : self.city,
             "is_active" : self.is_active
             # do not serialize the password, its a security breach
         }
     
-class Posts(db.Model):
-    __tablename__= 'posts'
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150), unique=True, nullable=False)
-    content = db.Column(db.String(250), unique=True, nullable=False)
-    autor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    user = db.relationship('User', back_populates='posts')
-
-
-
-    def __repr__(self):
-        return '<Posts %r>' % self.id
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "content" : self.content,
-            "user_id" : self.user_id
-        }
-    
-class Groups(db.Model):
-    __tablename__= 'groups'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), unique=True, nullable=False)
-    users = db.relationship('User', secondary=user_group, back_populates='groups')
-
-
 class People(db.Model):
     __tablename__= 'people'
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(60), nullable=False)
-    last_name = db.Column(db.String(60), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-
+    name = db.Column(db.String(120), nullable=False)
+    age = db.Column(db.Integer, nullable=True)
+    species = db.Column(db.String(50), nullable=True)    
 
     def __repr__(self):
-        return '<People %r>' % self.id
+        return '<People %r>' % self.name
 
     def serialize(self):
         return {
             "id": self.id,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "email": self.email,
+            "name": self.name,
+            "age": self.age,
+            "species": self.species
         }
     
+class Planets(db.Model):
+    __tablename__= 'planets'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    population = db.Column(db.Integer, nullable=True)
+    climate = db.Column(db.String(80), nullable=True)
+
+    def __repr__(self):
+        return '<Planets %r>' % self.id
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "population": self.population,
+            "climate": self.climate
+        }
+
+class Favourites(db.Model):
+    __tablename__='favourites'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    planet_id = db.Column(db.Integer, db.ForeignKey('planets.id'), nullable=True)
+    people_id = db.Column(db.Integer, db.ForeignKey('people.id'), nullable=True)
+
+    def __repr__(self):
+        return '<Favourites UserID %r>' % self.user_id
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "planet_id": self.planet_id,
+            "people_id": self.people_id
+        }
+
 
